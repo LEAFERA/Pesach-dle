@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>פסח-דל | מנוע חכם</title>
+    <title>פסח-דל | מנוע המשחק</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -102,20 +102,26 @@
 
     <script>
         // ==========================================
-        // 1. הגדרות וחיבור לגיטהאב
+        // 1. הגדרות גיטהאב ומצב מנוע
         // ==========================================
-        // החלף את הכתובת הזו לכתובת הרשמית של הגיטהאב שלך
         const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/main/data/';
         const VOCAB_URL = GITHUB_BASE + 'vocabulary.json';
         const PUZZLES_URL = GITHUB_BASE + 'puzzles.json';
 
+        // מילון גיבוי למקרה חירום (אם הגיטהאב לא זמין)
+        const FALLBACK_VOCAB = [
+            { name: "מרור", type: "מאכל", location: "קערה", part: "מרור", char: "מרירות" },
+            { name: "מצה", type: "מאכל", location: "שולחן", part: "מוציא", char: "יבש" },
+            { name: "פרעה", "type": "דמות", location: "מצרים", part: "סיפור", char: "מלך" }
+        ];
+
         let state = {
             vocabulary: [],
-            puzzles: {},
+            puzzles: {}, // עכשיו זה אובייקט (מילון חידות)
             playType: 'daily',
             currentMode: 'classic',
             targets: { daily: {}, infinite: {} },
-            clues: { daily: {}, infinite: {} }, // שומר את הרמזים (אימוג'י, טקסט או קישור לתמונה)
+            clues: { daily: {}, infinite: {} },
             guesses: { 
                 daily: { classic: [], emoji: [], image: [], pic_riddle: [], quote: [], riddle: [] }, 
                 infinite: { classic: [], emoji: [], image: [], pic_riddle: [], quote: [], riddle: [] } 
@@ -125,7 +131,7 @@
         const MODES = ['classic', 'emoji', 'image', 'pic_riddle', 'quote', 'riddle'];
 
         // ==========================================
-        // 2. משיכת נתונים
+        // 2. טעינת הנתונים
         // ==========================================
         async function loadGameData() {
             try {
@@ -135,35 +141,36 @@
                 ]);
 
                 if (vocabRes && vocabRes.ok) state.vocabulary = await vocabRes.json();
-                else throw new Error("Vocab fetch failed");
+                else throw new Error("Vocab missing");
 
                 if (puzzlesRes && puzzlesRes.ok) state.puzzles = await puzzlesRes.json();
-                else throw new Error("Puzzles fetch failed");
                 
             } catch (error) {
-                console.error("Failed to load data from GitHub", error);
-                document.getElementById('loading-text').innerText = "שגיאה בטעינת הנתונים. ודא שהקבצים קיימים בגיטהאב.";
-                return; // עוצר את המשחק אם אין מילון
+                console.warn("Using fallback data", error);
+                document.getElementById('loading-text').innerText = "טוען מערכת גיבוי...";
+                state.vocabulary = FALLBACK_VOCAB;
+                state.puzzles = {}; 
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
+                    initGameEngine();
+                }, 800);
             }
-            
-            setTimeout(() => {
-                document.getElementById('loading-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
-                initGameEngine();
-            }, 500);
         }
 
         // ==========================================
-        // 3. אתחול המשחק
+        // 3. אתחול משחק ובחירת חידות
         // ==========================================
         function initGameEngine() {
             const todayStr = new Date().toLocaleDateString('en-CA');
             const seed = todayStr.split('-').join('').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
 
-            // בחירת חידות יומיות לפי Seed מהבריכות
+            // בחירת החידות היומיות
             state.targets.daily.classic = state.vocabulary[seed % state.vocabulary.length];
             state.clues.daily.classic = null;
 
+            // עבור שאר המצבים, נשלוף מבריכת החידות (Pools)
             ['emoji', 'image', 'pic_riddle', 'quote', 'riddle'].forEach(mode => {
                 const pool = state.puzzles[mode] || [];
                 if (pool.length > 0) {
@@ -172,16 +179,16 @@
                     state.targets.daily[mode] = vocabItem || state.vocabulary[0];
                     state.clues.daily[mode] = puzzleObj.clue;
                 } else {
+                    // אם לא העלית חידות למצב הזה, נשים חידת ברירת מחדל כדי למנוע קריסה
                     state.targets.daily[mode] = state.vocabulary[0];
-                    state.clues.daily[mode] = "חסרה חידה במסד הנתונים";
+                    state.clues.daily[mode] = "חידה חסרה במאגר";
                 }
             });
 
-            // יצירת מטרות אינסופיות
             resetInfiniteTargets();
 
-            // טעינת שמירות קודמות
-            const saved = localStorage.getItem('pesachdle_separated_v1');
+            // טעינת שמירות מקומיות
+            const saved = localStorage.getItem('pesachdle_v2_final');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -199,12 +206,16 @@
             const setTarget = (m) => {
                 if (m === 'classic') {
                     state.targets.infinite[m] = state.vocabulary[Math.floor(Math.random() * state.vocabulary.length)];
+                    state.clues.infinite[m] = null;
                 } else {
                     const pool = state.puzzles[m] || [];
                     if (pool.length > 0) {
                         const puzzleObj = pool[Math.floor(Math.random() * pool.length)];
                         state.targets.infinite[m] = state.vocabulary.find(v => v.name === puzzleObj.answer) || state.vocabulary[0];
                         state.clues.infinite[m] = puzzleObj.clue;
+                    } else {
+                        state.targets.infinite[m] = state.vocabulary[0];
+                        state.clues.infinite[m] = "חידה חסרה במאגר";
                     }
                 }
                 state.guesses.infinite[m] = [];
@@ -217,7 +228,7 @@
         }
 
         // ==========================================
-        // 4. רינדור ותצוגה
+        // 4. ניהול מצבים ותצוגה
         // ==========================================
         function setPlayType(type) {
             state.playType = type;
@@ -251,7 +262,6 @@
             const clueData = state.clues[state.playType][state.currentMode];
             const isWon = target && guesses.some(g => g.name === target.name);
 
-            // עדכון כפתורי המצבים היומיים (הוספת V ירוק)
             if (state.playType === 'daily') {
                 MODES.forEach(m => {
                     const won = state.guesses.daily[m].some(g => state.targets.daily[m] && g.name === state.targets.daily[m].name);
@@ -259,7 +269,6 @@
                 });
             }
 
-            // סרט ההתקדמות למטה
             const ribbon = document.getElementById('completionRibbon');
             if (state.playType === 'daily' && isWon) {
                 ribbon.classList.remove('hidden');
@@ -273,7 +282,6 @@
             document.getElementById('guessInput').disabled = isWon;
             document.getElementById('inputWrapper').style.opacity = isWon ? '0.4' : '1';
 
-            // רינדור אזור הרמזים
             const clueContainer = document.getElementById('clueContainer');
             if (state.currentMode !== 'classic') {
                 clueContainer.classList.remove('hidden');
@@ -282,7 +290,6 @@
                 clueContainer.classList.add('hidden');
             }
 
-            // רינדור הטבלה
             if (state.currentMode === 'classic' && guesses.length > 0) {
                 const h = document.createElement('div');
                 h.className = 'grid grid-cols-5 gap-2 w-full mb-3 border-b border-gray-800 pb-2 text-[10px] text-gray-600 font-black text-center uppercase';
@@ -321,18 +328,18 @@
                 label.innerText = 'זום-אין (נחשף עם הנסיונות):';
                 const zoom = isWon ? 1 : Math.max(1, 4.0 - (attempts * 0.6));
                 const blur = isWon ? 0 : Math.max(0, 15 - (attempts * 3.5));
-                content.innerHTML = `<div class="zoom-container"><img src="${clueData}" class="zoom-image" style="transform: scale(${zoom}); filter: blur(${blur}px)"></div>`;
+                content.innerHTML = `<div class="zoom-container"><img src="${clueData || ''}" class="zoom-image" style="transform: scale(${zoom}); filter: blur(${blur}px)"></div>`;
             } else if (state.currentMode === 'pic_riddle') {
                 label.innerText = '🖼️ תמונת חידה: מה מופיע כאן?';
-                content.innerHTML = `<div class="zoom-container"><img src="${clueData}" class="zoom-image" style="transform: scale(1); filter: blur(0)"></div>`;
+                content.innerHTML = `<div class="zoom-container"><img src="${clueData || ''}" class="zoom-image" style="transform: scale(1); filter: blur(0)"></div>`;
             } else {
                 label.innerText = state.currentMode === 'quote' ? 'השלם את הציטוט:' : 'פתרו את החידה:';
-                content.innerText = clueData || "";
+                content.innerText = clueData || "חסר רמז";
             }
         }
 
         // ==========================================
-        // 5. ניהול קלט המשתמש (Autocomplete)
+        // 5. ניחושים והשלמה אוטומטית
         // ==========================================
         const input = document.getElementById('guessInput');
         const auto = document.getElementById('autocomplete');
@@ -371,7 +378,7 @@
         };
 
         // ==========================================
-        // 6. פונקציות עזר, ניצחון ושמירה
+        // 6. חלונות ואפקטים
         // ==========================================
         function createConfetti() {
             const container = document.getElementById('confetti-container');
@@ -409,7 +416,7 @@
         function getModeName(m) { return { classic: 'קלאסי', emoji: 'אימוג\'י', image: 'זום-אין', pic_riddle: 'תמונת חידה', quote: 'ציטוט', riddle: 'חידה' }[m] || m; }
         
         function saveState() { 
-            localStorage.setItem('pesachdle_separated_v1', JSON.stringify({ 
+            localStorage.setItem('pesachdle_v2_final', JSON.stringify({ 
                 date: new Date().toLocaleDateString('en-CA'), 
                 dailyGuesses: state.guesses.daily,
                 infiniteGuesses: state.guesses.infinite,
@@ -418,7 +425,6 @@
             })); 
         }
 
-        // התנעה
         window.onload = loadGameData;
     </script>
 </body>
