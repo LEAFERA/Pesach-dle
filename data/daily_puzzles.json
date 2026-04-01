@@ -1,8 +1,47 @@
 [
   {
-    "date": "2024-04-10",
+    "date": "2026-04-01",
     "classic": "מצה",
-    "emoji": { "answer": "פרעה", "clue": "👑🇪🇬" },
-    "quote": { "answer": "מרור", "clue": "על שום מה?" }
+    "emoji": { "answer": "מרור", "clue": "🥬🌿🔥" },
+    "image": { "answer": "דם", "clue": "https://images.unsplash.com/photo-1541348263662-e0c8642742e1?w=400" },
+    "pic_riddle": { "answer": "חרוסת", "clue": "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400" },
+    "quote": { "answer": "פרעה", "clue": "מִי ה' אֲשֶׁר אֶשְׁמַע בְּקוֹלוֹ?" },
+    "riddle": { "answer": "אפיקומן", "clue": "אני החצי השבור שנעלם, ורק הילדים ימצאו אותי תמורת מתנה." }
+  },
+  {
+    "date": "2026-04-02",
+    "classic": "הגדה",
+    "emoji": { "answer": "פרעה", "clue": "👑🇪🇬🌊" },
+    "image": { "answer": "מצה", "clue": "https://images.unsplash.com/photo-1521481180292-628f8695015b?w=400" },
+    "pic_riddle": { "answer": "אגוזים", "clue": "https://images.unsplash.com/photo-1506161483344-9669eaf9da38?w=400" },
+    "quote": { "answer": "משה", "clue": "שַׁלַּח אֶת עַמִּי וְיַעַבְדֻנִי!" },
+    "riddle": { "answer": "זרוע", "clue": "אני נח על הקערה, מזכיר לכולם את הקורבן שלא נאכל הלילה." }
+  },
+  {
+    "date": "2026-04-03",
+    "classic": "ים סוף",
+    "emoji": { "answer": "צפרדע", "clue": "🐸🐸🐸" },
+    "image": { "answer": "ארבע כוסות", "clue": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400" },
+    "pic_riddle": { "answer": "ביצה", "clue": "https://images.unsplash.com/photo-1582722872445-44ad5c78a4dd?w=400" },
+    "quote": { "answer": "דיינו", "clue": "אִלּוּ הוֹצִיאָנוּ מִמִּצְרַיִם, וְלֹא עָשָׂה בָהֶם שְׁפָטִים..." },
+    "riddle": { "answer": "חושך", "clue": "במשך שלושה ימים, איש לא ראה את אחיו בגללי." }
+  },
+  {
+    "date": "2026-04-04",
+    "classic": "מכת בכורות",
+    "emoji": { "answer": "כורך", "clue": "🫓🥬🫓" },
+    "image": { "answer": "מרור", "clue": "https://images.unsplash.com/photo-1594911773193-4e4b529944a6?w=400" },
+    "pic_riddle": { "answer": "אפיקומן", "clue": "https://images.unsplash.com/photo-1614064641913-a5eb094b85c1?w=400" },
+    "quote": { "answer": "מה נשתנה", "clue": "מַה נִּשְׁתַּנָּה הַלַּיְלָה הַזֶּה מִכָּל הַלֵּילוֹת?" },
+    "riddle": { "answer": "ארבע כוסות", "clue": "אנחנו מייצגות את לשונות של גאולה, ואסור לכם לדלג על אף אחת מאיתנו." }
+  },
+  {
+    "date": "2026-04-05",
+    "classic": "אהרן",
+    "emoji": { "answer": "מרים", "clue": "👩🪘🎶🌊" },
+    "image": { "answer": "ים סוף", "clue": "https://images.unsplash.com/photo-1505118380757-91f5f56353d2?w=400" },
+    "pic_riddle": { "answer": "חושך", "clue": "https://images.unsplash.com/photo-1504245564858-a5f1e828e833?w=400" },
+    "quote": { "answer": "הגדה", "clue": "עֲבָדִים הָיִינוּ לְפַרְעֹה בְּמִצְרָיִם..." },
+    "riddle": { "answer": "נרצה", "clue": "אני מגיע בסוף, אחרי שכולם עייפים, וכשאני מגיע - נגמר הסדר ויש לשיר." }
   }
 ]
