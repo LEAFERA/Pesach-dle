@@ -60,7 +60,6 @@
 </head>
 <body id="mainBody">
 
-    <!-- מסך טעינה ושגיאות קריטיות -->
     <div id="loading-overlay">
         <div id="loader-spinner" class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
         <div id="loading-text" class="text-gray-400 font-bold px-6">
@@ -71,7 +70,6 @@
     <div id="app-container">
         <div id="confetti-container"></div>
 
-        <!-- אזור כותרת וניווט -->
         <header class="w-full max-w-2xl mx-auto flex flex-col items-center border-b border-gray-800 pb-4 mb-4 text-center mt-4 px-4">
             <div class="flex bg-black/40 p-1 rounded-xl mb-6 border border-gray-700 shadow-inner">
                 <button onclick="setPlayType('daily')" id="type-daily" class="px-6 py-2 rounded-lg text-sm font-black transition-all duration-300" style="background: white; color: black;">📅 יומי</button>
@@ -91,16 +89,13 @@
             </nav>
         </header>
 
-        <!-- אזור הצגת הרמזים (מוסתר במצב קלאסי) -->
         <div id="clueContainer" class="w-full max-w-md mx-auto bg-[#1a1a1b] p-6 rounded-3xl mb-6 text-center hidden border border-gray-800 shadow-xl mx-4">
             <p id="clueLabel" class="text-gray-500 text-[9px] font-black uppercase tracking-widest mb-2"></p>
             <div id="clueContent" class="text-xl font-bold leading-relaxed flex flex-wrap justify-center items-center min-h-[60px] gap-2"></div>
         </div>
 
-        <!-- לוח הניחושים -->
         <main id="board" class="w-full max-w-2xl mx-auto flex flex-col gap-2 px-4 pb-40 flex-grow"></main>
 
-        <!-- אזור ההקלדה התחתון -->
         <div class="fixed bottom-0 left-0 right-0 glass border-t border-gray-800 flex flex-col items-center z-40 px-4 pb-6 pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
             <div id="completionRibbon" class="hidden w-full max-w-md bg-green-900/40 border border-green-500/30 rounded-xl p-2 mb-3 text-center text-green-400 font-bold text-xs">
                 ✨ ה-<span id="completedModeName"></span> הושלם! (<span id="dailyProgressCount">0</span>/6)
@@ -111,14 +106,12 @@
                        class="w-full p-4 bg-white/5 border-2 border-gray-700 rounded-2xl text-white focus:outline-none focus:border-green-600 transition-all text-lg shadow-inner placeholder-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                        placeholder="הקישו מושג..." disabled>
                 
-                <!-- רשימת ההשלמה האוטומטית -->
                 <div id="autocomplete" class="absolute bottom-full mb-3 left-0 right-0 bg-[#1a1a1b] border border-gray-700 rounded-2xl hidden max-h-60 overflow-y-auto shadow-2xl z-50 no-scrollbar divide-y divide-gray-800"></div>
             </div>
             <div class="h-safe-area mt-2"></div>
         </div>
     </div>
 
-    <!-- מודל ניצחון -->
     <div id="modal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-[1000] p-4 backdrop-blur-md">
         <div class="bg-[#1a1a1b] p-10 rounded-[3rem] max-w-sm w-full text-center border border-gray-800 shadow-2xl animate-pop">
             <div id="modalIcon" class="text-6xl mb-6">🏆</div>
@@ -138,12 +131,13 @@
         // נתיבי הגישה לקבצי ה-JSON הטהורים בגיטהאב
         const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/main/data/';
         const VOCAB_URL = GITHUB_BASE + 'vocabulary.json';
-        const PUZZLES_URL = GITHUB_BASE + 'Puzzles Data.json';
+        const PUZZLES_URL = GITHUB_BASE + 'Puzzles Data.json'; // קובץ הבריכות לאינסופי
+        const DAILY_PUZZLES_URL = GITHUB_BASE + 'daily_puzzles.json'; // קובץ ייעודי ליומי
 
-        // מבנה הנתונים המרכזי של המנוע (State)
         let state = {
             vocabulary: [],
-            puzzles: {},
+            puzzles: {}, // לבריכת חידות האינסופיות
+            dailyPuzzles: [], // רשימת החידות היומיות הספציפיות
             playType: 'daily',
             currentMode: 'classic',
             targets: { daily: {}, infinite: {} },
@@ -156,44 +150,41 @@
 
         const MODES = ['classic', 'emoji', 'image', 'pic_riddle', 'quote', 'riddle'];
 
+        // גיבוי למקרה שהאינטרנט מנותק
+        const FALLBACK_VOCAB = [
+            { name: "מרור", type: "מאכל", location: "קערה", part: "מרור", char: "מרירות" },
+            { name: "מצה", type: "מאכל", location: "שולחן", part: "מוציא", char: "יבש" }
+        ];
+
         // ==========================================
-        // 2. מנוע משיכת נתונים ושגיאות קריטיות (Data Layer)
+        // 2. משיכת נתונים (Data Layer)
         // ==========================================
         async function loadGameData() {
             try {
-                const [vocabRes, puzzlesRes] = await Promise.all([
+                const [vocabRes, puzzlesRes, dailyRes] = await Promise.all([
                     fetch(VOCAB_URL).catch(() => null),
-                    fetch(PUZZLES_URL).catch(() => null)
+                    fetch(PUZZLES_URL).catch(() => null),
+                    fetch(DAILY_PUZZLES_URL).catch(() => null)
                 ]);
 
-                // שימוש במילון מהרשת, ואם חסר או שגוי - שימוש בגיבוי (ללא עצירת המנוע)
-                if (vocabRes && vocabRes.ok) {
-                    state.vocabulary = await vocabRes.json();
-                } else {
-                    console.warn("קובץ המילון לא נמצא. המנוע ישתמש במילון בסיסי מובנה.");
-                    state.vocabulary = FALLBACK_VOCAB;
-                }
+                if (vocabRes && vocabRes.ok) state.vocabulary = await vocabRes.json();
+                else state.vocabulary = FALLBACK_VOCAB;
 
-                // שימוש בחידות מהרשת, ואם חסר - פשוט נשאר ריק
-                if (puzzlesRes && puzzlesRes.ok) {
-                    state.puzzles = await puzzlesRes.json();
-                } else {
-                    console.warn("קובץ החידות לא נמצא. המנוע יעבוד ללא רמזים מותאמים.");
-                    state.puzzles = {};
-                }
+                if (puzzlesRes && puzzlesRes.ok) state.puzzles = await puzzlesRes.json();
+                else state.puzzles = {};
 
-                // הגנה נוספת אם המילון ריק לגמרי
+                if (dailyRes && dailyRes.ok) state.dailyPuzzles = await dailyRes.json();
+                else state.dailyPuzzles = [];
+
                 if (!Array.isArray(state.vocabulary) || state.vocabulary.length === 0) {
                     state.vocabulary = FALLBACK_VOCAB;
                 }
                 
             } catch (error) {
-                // שום דבר לא קורס - פשוט עוברים לגיבוי
-                console.error("שגיאה בטעינת הנתונים, המנוע ירוץ על בסיס נתוני חירום:", error);
                 state.vocabulary = FALLBACK_VOCAB;
                 state.puzzles = {};
+                state.dailyPuzzles = [];
             } finally {
-                // תמיד, בכל מצב, מעלימים את מסך הטעינה ומריצים את המנוע!
                 const overlay = document.getElementById('loading-overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => { 
@@ -208,33 +199,52 @@
         // 3. אתחול המשחק (הגרלות ומטרות)
         // ==========================================
         function initGameEngine() {
-            const todayStr = new Date().toLocaleDateString('en-CA');
+            const todayStr = new Date().toLocaleDateString('en-CA'); // לדוגמה: 2024-04-10
             const seed = todayStr.split('-').join('').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
 
-            // בחירת מטרה יומית קלאסית
-            state.targets.daily.classic = state.vocabulary[seed % state.vocabulary.length];
-            state.clues.daily.classic = null;
+            // בדיקה האם יש בקובץ ה-Daily משהו שתואם לתאריך של היום
+            const specificDaily = Array.isArray(state.dailyPuzzles) ? state.dailyPuzzles.find(d => d.date === todayStr) : null;
 
-            // בחירת מטרות יומיות משאר הבריכות
-            ['emoji', 'image', 'pic_riddle', 'quote', 'riddle'].forEach((mode, index) => {
-                const pool = state.puzzles[mode];
-                if (Array.isArray(pool) && pool.length > 0) {
-                    const puzzleObj = pool[seed % pool.length];
-                    const vocabItem = state.vocabulary.find(v => v.name === puzzleObj.answer);
-                    
-                    state.targets.daily[mode] = vocabItem || state.vocabulary[0];
-                    state.clues.daily[mode] = puzzleObj.clue;
-                } else {
-                    // Fallback חכם אם קובץ החידות חסר - משתמשים במילון כדי לייצר מטרה
-                    state.targets.daily[mode] = state.vocabulary[(seed + index + 1) % state.vocabulary.length];
-                    state.clues.daily[mode] = "החידה טרם הוזנה למאגר. נסו לנחש את המילה ללא רמז.";
-                }
-            });
+            if (specificDaily) {
+                // יש לנו חידות ספציפיות להיום ב-daily_puzzles.json!
+                state.targets.daily.classic = state.vocabulary.find(v => v.name === specificDaily.classic) || state.vocabulary[0];
+                state.clues.daily.classic = null;
 
+                ['emoji', 'image', 'pic_riddle', 'quote', 'riddle'].forEach(mode => {
+                    if (specificDaily[mode]) {
+                        const answerName = specificDaily[mode].answer || specificDaily[mode];
+                        const clueText = specificDaily[mode].clue || "";
+                        state.targets.daily[mode] = state.vocabulary.find(v => v.name === answerName) || state.vocabulary[0];
+                        state.clues.daily[mode] = clueText;
+                    } else {
+                        state.targets.daily[mode] = state.vocabulary[0];
+                        state.clues.daily[mode] = "חידה חסרה בקובץ היומי להיום.";
+                    }
+                });
+            } else {
+                // אין חידה יומיות ספציפיות - נופלים אחורה למערכת ההגרלות (Seed) מתוך Puzzles Data
+                state.targets.daily.classic = state.vocabulary[seed % state.vocabulary.length];
+                state.clues.daily.classic = null;
+
+                ['emoji', 'image', 'pic_riddle', 'quote', 'riddle'].forEach((mode, index) => {
+                    const pool = state.puzzles[mode];
+                    if (Array.isArray(pool) && pool.length > 0) {
+                        const puzzleObj = pool[seed % pool.length];
+                        const vocabItem = state.vocabulary.find(v => v.name === puzzleObj.answer);
+                        state.targets.daily[mode] = vocabItem || state.vocabulary[0];
+                        state.clues.daily[mode] = puzzleObj.clue;
+                    } else {
+                        state.targets.daily[mode] = state.vocabulary[(seed + index + 1) % state.vocabulary.length];
+                        state.clues.daily[mode] = "החידה טרם הוזנה למאגר.";
+                    }
+                });
+            }
+
+            // אתחול המצב האינסופי מתוך Puzzles Data
             resetInfiniteTargets();
 
-            // טעינת שמירות מהדפדפן
-            const savedData = localStorage.getItem('pesachdle_pro_engine');
+            // טעינת שמירות הדפדפן
+            const savedData = localStorage.getItem('pesachdle_pro_engine_v3');
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
@@ -262,9 +272,8 @@
                         state.targets.infinite[m] = state.vocabulary.find(v => v.name === puzzleObj.answer) || state.vocabulary[0];
                         state.clues.infinite[m] = puzzleObj.clue;
                     } else {
-                        // Fallback למקרה שאין חידות
                         state.targets.infinite[m] = state.vocabulary[Math.floor(Math.random() * state.vocabulary.length)];
-                        state.clues.infinite[m] = "החידה טרם הוזנה למאגר. נסו לנחש את המילה ללא רמז.";
+                        state.clues.infinite[m] = "חידה חסרה במאגר. נסו לנחש.";
                     }
                 }
                 state.guesses.infinite[m] = [];
@@ -501,7 +510,7 @@
         }
         
         function saveState() { 
-            localStorage.setItem('pesachdle_pro_engine', JSON.stringify({ 
+            localStorage.setItem('pesachdle_pro_engine_v3', JSON.stringify({ 
                 date: new Date().toLocaleDateString('en-CA'), 
                 dailyGuesses: state.guesses.daily,
                 infiniteGuesses: state.guesses.infinite,
