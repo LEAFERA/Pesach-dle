@@ -119,12 +119,12 @@
 
     <script>
         // ==========================================
-        // 1. הגדרות מנוע ותצורת בסיס (הנתיב תוקן!)
+        // 1. הגדרות מנוע ותצורת בסיס 
         // ==========================================
         const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/refs/heads/main/data/';
         
         const VOCAB_URL = GITHUB_BASE + 'vocabulary.json';
-        const PUZZLES_URL = GITHUB_BASE + 'Puzzles%20Data.json'; // הקישור המדויק שנתת
+        const PUZZLES_URL = GITHUB_BASE + 'puzzles.json'; // הקישור המעודכן!
         const DAILY_PUZZLES_URL = GITHUB_BASE + 'daily_puzzles.json'; 
 
         let state = {
@@ -149,20 +149,18 @@
         ];
 
         // ==========================================
-        // 2. משיכת נתונים
+        // 2. משיכת נתונים עם עוקף זיכרון (Cache Busting)
         // ==========================================
         async function loadGameData() {
             try {
+                // מנגנון עוקף Cache שמכריח את גיטהאב להביא את הקובץ המעודכן ביותר בכל טעינה
+                const cacheBust = '?t=' + Date.now();
+                
                 const [vocabRes, puzzlesRes, dailyRes] = await Promise.all([
-                    fetch(VOCAB_URL).catch(() => null),
-                    fetch(PUZZLES_URL).catch(() => null),
-                    fetch(DAILY_PUZZLES_URL).catch(() => null)
+                    fetch(VOCAB_URL + cacheBust).catch(() => null),
+                    fetch(PUZZLES_URL + cacheBust).catch(() => null),
+                    fetch(DAILY_PUZZLES_URL + cacheBust).catch(() => null)
                 ]);
-
-                // לוגים לקונסול שיעזרו לנו לוודא שהכל נטען תקין
-                console.log("מילון:", vocabRes && vocabRes.ok ? "✅" : "❌");
-                console.log("חידות:", puzzlesRes && puzzlesRes.ok ? "✅" : "❌");
-                console.log("יומי:", dailyRes && dailyRes.ok ? "✅" : "❌");
 
                 if (vocabRes && vocabRes.ok) state.vocabulary = await vocabRes.json();
                 else state.vocabulary = FALLBACK_VOCAB;
@@ -194,7 +192,7 @@
         }
 
         // ==========================================
-        // 3. אתחול המשחק (הגרלות ומטרות)
+        // 3. אתחול המשחק (תמיכה במבנה החידות החדש)
         // ==========================================
         function initGameEngine() {
             const todayStr = new Date().toLocaleDateString('en-CA'); 
@@ -222,12 +220,21 @@
                 state.clues.daily.classic = null;
 
                 ['emoji', 'quote', 'riddle'].forEach((mode, index) => {
-                    const pool = state.puzzles[mode];
-                    if (Array.isArray(pool) && pool.length > 0) {
+                    let pool = [];
+                    // זיהוי המבנה החדש שיצרת: מערך של אובייקטים
+                    if (Array.isArray(state.puzzles)) {
+                        pool = state.puzzles.filter(p => p[mode]);
+                    } else {
+                        pool = state.puzzles[mode] || [];
+                    }
+
+                    if (pool.length > 0) {
                         const puzzleObj = pool[seed % pool.length];
-                        const vocabItem = state.vocabulary.find(v => v.name === puzzleObj.answer);
-                        state.targets.daily[mode] = vocabItem || state.vocabulary[0];
-                        state.clues.daily[mode] = puzzleObj.clue;
+                        const answerName = Array.isArray(state.puzzles) ? puzzleObj.name : puzzleObj.answer;
+                        const clueText = Array.isArray(state.puzzles) ? puzzleObj[mode] : puzzleObj.clue;
+                        
+                        state.targets.daily[mode] = state.vocabulary.find(v => v.name === answerName) || state.vocabulary[0];
+                        state.clues.daily[mode] = clueText;
                     } else {
                         state.targets.daily[mode] = state.vocabulary[(seed + index + 1) % state.vocabulary.length];
                         state.clues.daily[mode] = "החידה טרם הוזנה למאגר.";
@@ -237,8 +244,8 @@
 
             resetInfiniteTargets();
 
-            // v6 - מפתח חדש כדי למחוק שמירות פגומות קודמות שהיו תקועות על מצה ומרור!
-            const savedData = localStorage.getItem('pesachdle_pro_engine_v6');
+            // איפוס זיכרון מקומי כדי למנוע שמירות שבורות מהעבר
+            const savedData = localStorage.getItem('pesachdle_pro_engine_v7');
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
@@ -260,11 +267,21 @@
                     state.targets.infinite[m] = state.vocabulary[Math.floor(Math.random() * state.vocabulary.length)];
                     state.clues.infinite[m] = null;
                 } else {
-                    const pool = state.puzzles[m];
-                    if (Array.isArray(pool) && pool.length > 0) {
+                    let pool = [];
+                    // תמיכה במבנה הישן והחדש במצב האינסופי
+                    if (Array.isArray(state.puzzles)) {
+                        pool = state.puzzles.filter(p => p[m]);
+                    } else {
+                        pool = state.puzzles[m] || [];
+                    }
+
+                    if (pool.length > 0) {
                         const puzzleObj = pool[Math.floor(Math.random() * pool.length)];
-                        state.targets.infinite[m] = state.vocabulary.find(v => v.name === puzzleObj.answer) || state.vocabulary[0];
-                        state.clues.infinite[m] = puzzleObj.clue;
+                        const answerName = Array.isArray(state.puzzles) ? puzzleObj.name : puzzleObj.answer;
+                        const clueText = Array.isArray(state.puzzles) ? puzzleObj[m] : puzzleObj.clue;
+                        
+                        state.targets.infinite[m] = state.vocabulary.find(v => v.name === answerName) || state.vocabulary[0];
+                        state.clues.infinite[m] = clueText;
                     } else {
                         state.targets.infinite[m] = state.vocabulary[Math.floor(Math.random() * state.vocabulary.length)];
                         state.clues.infinite[m] = "חידה חסרה במאגר. נסו לנחש.";
@@ -516,7 +533,7 @@
         }
         
         function saveState() { 
-            localStorage.setItem('pesachdle_pro_engine_v6', JSON.stringify({ 
+            localStorage.setItem('pesachdle_pro_engine_v7', JSON.stringify({ 
                 date: new Date().toLocaleDateString('en-CA'), 
                 dailyGuesses: state.guesses.daily,
                 infiniteGuesses: state.guesses.infinite,
