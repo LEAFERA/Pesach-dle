@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>פסח-דל </title>
+    <title>פסח-דל</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* משתני צבעים בסיסיים */
+        /* משתני צבעים מעודכנים לפי בקשתך (אדום, כתום, ירוק) */
         :root { 
             --bg-daily: #121213; 
             --bg-infinite: #0f172a; 
-            --correct: #538d4e; 
-            --partial: #b59f3b; 
-            --wrong: #3a3a3c; 
+            --correct: #16a34a; /* ירוק בוהק וברור */
+            --partial: #f59e0b; /* כתום/ענבר */
+            --wrong: #dc2626;   /* אדום */
         }
         
         /* הגדרות גוף העמוד */
@@ -26,23 +26,23 @@
         
         /* מחלקות שימושיות לצבעים ורקעים */
         .infinite-bg { background-color: var(--bg-infinite); }
-        .bg-correct { background-color: var(--correct) !important; }
-        .bg-partial { background-color: var(--partial) !important; }
-        .bg-wrong { background-color: var(--wrong) !important; }
+        .bg-correct { background-color: var(--correct) !important; color: white !important; }
+        .bg-partial { background-color: var(--partial) !important; color: white !important; }
+        .bg-wrong { background-color: var(--wrong) !important; color: white !important; }
         #app-container { display: flex; flex-direction: column; min-height: 100vh; min-height: -webkit-fill-available; }
         
         /* עיצוב כרטיסיות הניווט (המצבים) */
         .mode-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid #3a3a3c; background: rgba(255, 255, 255, 0.03); position: relative; }
         .mode-card.active { border-color: var(--correct); background-color: #1a1a1b; transform: scale(1.05); z-index: 10; }
-        .mode-card.completed::after { content: '✅'; position: absolute; top: -6px; right: -6px; font-size: 10px; background: #538d4e; border-radius: 50%; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .mode-card.completed::after { content: '✅'; position: absolute; top: -6px; right: -6px; font-size: 10px; background: var(--correct); border-radius: 50%; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
         /* אנימציות */
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .animate-pop { animation: pop 0.3s ease-out forwards; }
-        @keyframes gold-shine { 0%, 100% { border-color: #b59f3b; box-shadow: 0 0 5px #b59f3b; } 50% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; } }
+        .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes gold-shine { 0%, 100% { border-color: #f59e0b; box-shadow: 0 0 5px #f59e0b; } 50% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; } }
         .correct-final { animation: gold-shine 1.5s infinite; border-width: 3px !important; }
 
-        /* עיצוב לתמונות (זום-אין ותמונת חידה) */
+        /* עיצוב לתמונות */
         .zoom-container { width: min(220px, 60vw); height: min(220px, 60vw); overflow: hidden; border-radius: 2rem; margin: 0 auto; border: 4px solid #3a3a3c; background: #1a1a1b; display: flex; align-items: center; justify-content: center; }
         .zoom-image { width: 100%; height: 100%; object-fit: cover; transition: all 0.8s ease; }
 
@@ -127,17 +127,15 @@
         // ==========================================
         // 1. הגדרות מנוע ותצורת בסיס
         // ==========================================
-        
-        // נתיבי הגישה לקבצי ה-JSON הטהורים בגיטהאב
         const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/main/data/';
         const VOCAB_URL = GITHUB_BASE + 'vocabulary.json';
-        const PUZZLES_URL = GITHUB_BASE + 'Puzzles Data.json'; // קובץ הבריכות לאינסופי
-        const DAILY_PUZZLES_URL = GITHUB_BASE + 'daily_puzzles.json'; // קובץ ייעודי ליומי
+        const PUZZLES_URL = GITHUB_BASE + 'Puzzles Data.json'; 
+        const DAILY_PUZZLES_URL = GITHUB_BASE + 'daily_puzzles.json'; 
 
         let state = {
             vocabulary: [],
-            puzzles: {}, // לבריכת חידות האינסופיות
-            dailyPuzzles: [], // רשימת החידות היומיות הספציפיות
+            puzzles: {}, 
+            dailyPuzzles: [], 
             playType: 'daily',
             currentMode: 'classic',
             targets: { daily: {}, infinite: {} },
@@ -150,14 +148,13 @@
 
         const MODES = ['classic', 'emoji', 'image', 'pic_riddle', 'quote', 'riddle'];
 
-        // גיבוי למקרה שהאינטרנט מנותק
         const FALLBACK_VOCAB = [
             { name: "מרור", type: "מאכל", location: "קערה", part: "מרור", char: "מרירות" },
             { name: "מצה", type: "מאכל", location: "שולחן", part: "מוציא", char: "יבש" }
         ];
 
         // ==========================================
-        // 2. משיכת נתונים (Data Layer)
+        // 2. משיכת נתונים
         // ==========================================
         async function loadGameData() {
             try {
@@ -199,14 +196,12 @@
         // 3. אתחול המשחק (הגרלות ומטרות)
         // ==========================================
         function initGameEngine() {
-            const todayStr = new Date().toLocaleDateString('en-CA'); // לדוגמה: 2024-04-10
+            const todayStr = new Date().toLocaleDateString('en-CA'); 
             const seed = todayStr.split('-').join('').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
 
-            // בדיקה האם יש בקובץ ה-Daily משהו שתואם לתאריך של היום
             const specificDaily = Array.isArray(state.dailyPuzzles) ? state.dailyPuzzles.find(d => d.date === todayStr) : null;
 
             if (specificDaily) {
-                // יש לנו חידות ספציפיות להיום ב-daily_puzzles.json!
                 state.targets.daily.classic = state.vocabulary.find(v => v.name === specificDaily.classic) || state.vocabulary[0];
                 state.clues.daily.classic = null;
 
@@ -222,7 +217,6 @@
                     }
                 });
             } else {
-                // אין חידה יומיות ספציפיות - נופלים אחורה למערכת ההגרלות (Seed) מתוך Puzzles Data
                 state.targets.daily.classic = state.vocabulary[seed % state.vocabulary.length];
                 state.clues.daily.classic = null;
 
@@ -240,11 +234,10 @@
                 });
             }
 
-            // אתחול המצב האינסופי מתוך Puzzles Data
             resetInfiniteTargets();
 
-            // טעינת שמירות הדפדפן
-            const savedData = localStorage.getItem('pesachdle_pro_engine_v3');
+            // שינוי גרסת מפתח השמירה ל-v4 כדי לאפס נתונים פגומים קודמים
+            const savedData = localStorage.getItem('pesachdle_pro_engine_v4');
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
@@ -320,70 +313,86 @@
             if (!board) return;
             board.innerHTML = '';
             
-            const target = state.targets[state.playType][state.currentMode];
-            const guesses = state.guesses[state.playType][state.currentMode];
-            const clueData = state.clues[state.playType][state.currentMode];
-            const isWon = target && guesses.some(g => g.name === target.name);
+            try {
+                const target = state.targets[state.playType][state.currentMode];
+                const guesses = state.guesses[state.playType][state.currentMode] || [];
+                const clueData = state.clues[state.playType][state.currentMode];
+                const isWon = target && guesses.some(g => g.name === target.name);
 
-            if (state.playType === 'daily') {
-                MODES.forEach(m => {
-                    const won = state.guesses.daily[m].some(g => state.targets.daily[m] && g.name === state.targets.daily[m].name);
-                    document.getElementById('btn-' + m).classList.toggle('completed', won);
-                });
-            }
-
-            const ribbon = document.getElementById('completionRibbon');
-            if (state.playType === 'daily' && isWon) {
-                ribbon.classList.remove('hidden');
-                document.getElementById('completedModeName').innerText = getModeName(state.currentMode);
-                const winCount = MODES.filter(m => state.targets.daily[m] && state.guesses.daily[m].some(g => g.name === state.targets.daily[m].name)).length;
-                document.getElementById('dailyProgressCount').innerText = winCount;
-            } else {
-                ribbon.classList.add('hidden');
-            }
-
-            const inputField = document.getElementById('guessInput');
-            inputField.disabled = isWon;
-            document.getElementById('inputWrapper').style.opacity = isWon ? '0.4' : '1';
-
-            const clueContainer = document.getElementById('clueContainer');
-            if (state.currentMode !== 'classic') {
-                clueContainer.classList.remove('hidden');
-                updateClueUI(clueData, guesses.length, isWon);
-            } else {
-                clueContainer.classList.add('hidden');
-            }
-
-            if (state.currentMode === 'classic' && guesses.length > 0) {
-                const headerRow = document.createElement('div');
-                headerRow.className = 'grid grid-cols-5 gap-2 w-full mb-3 border-b border-gray-800 pb-2 text-[10px] text-gray-600 font-black text-center uppercase';
-                ['מושג', 'סוג', 'מיקום', 'חלק', 'תכונה'].forEach(text => {
-                    headerRow.innerHTML += `<div>${text}</div>`;
-                });
-                board.appendChild(headerRow);
-            }
-
-            if(target) {
-                guesses.forEach(guess => {
-                    const row = document.createElement('div');
-                    const isFinal = guess.name === target.name;
-                    row.className = `grid grid-cols-5 gap-2 w-full animate-pop mb-1.5 ${isFinal ? 'correct-final p-0.5 rounded-2xl' : ''}`;
-                    
-                    ['name', 'type', 'location', 'part', 'char'].forEach(col => {
-                        let bgColor = 'bg-wrong';
-                        if (guess[col] && guess[col] === target[col]) {
-                            bgColor = 'bg-correct';
-                        } else if (guess[col] && Object.values(target).includes(guess[col])) {
-                            bgColor = 'bg-partial';
-                        }
-                        const displayValue = guess[col] || '-';
-                        row.innerHTML += `<div class="h-14 sm:h-16 flex items-center justify-center rounded-xl ${bgColor} text-[10px] sm:text-xs font-bold text-center p-1 shadow border border-white/5">${displayValue}</div>`;
+                if (state.playType === 'daily') {
+                    MODES.forEach(m => {
+                        const won = state.guesses.daily[m].some(g => state.targets.daily[m] && g.name === state.targets.daily[m].name);
+                        document.getElementById('btn-' + m).classList.toggle('completed', won);
                     });
-                    board.appendChild(row);
-                });
-            }
+                }
 
-            if (guesses.length > 0) setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+                const ribbon = document.getElementById('completionRibbon');
+                if (state.playType === 'daily' && isWon) {
+                    ribbon.classList.remove('hidden');
+                    document.getElementById('completedModeName').innerText = getModeName(state.currentMode);
+                    const winCount = MODES.filter(m => state.targets.daily[m] && state.guesses.daily[m].some(g => g.name === state.targets.daily[m].name)).length;
+                    document.getElementById('dailyProgressCount').innerText = winCount;
+                } else {
+                    ribbon.classList.add('hidden');
+                }
+
+                const inputField = document.getElementById('guessInput');
+                inputField.disabled = isWon;
+                document.getElementById('inputWrapper').style.opacity = isWon ? '0.4' : '1';
+
+                const clueContainer = document.getElementById('clueContainer');
+                if (state.currentMode !== 'classic') {
+                    clueContainer.classList.remove('hidden');
+                    updateClueUI(clueData, guesses.length, isWon);
+                } else {
+                    clueContainer.classList.add('hidden');
+                }
+
+                if (state.currentMode === 'classic' && guesses.length > 0) {
+                    const headerRow = document.createElement('div');
+                    headerRow.className = 'grid grid-cols-5 gap-2 w-full mb-3 border-b border-gray-800 pb-2 text-[10px] text-gray-600 font-black text-center uppercase';
+                    ['מושג', 'סוג', 'מיקום', 'חלק', 'תכונה'].forEach(text => {
+                        headerRow.innerHTML += `<div>${text}</div>`;
+                    });
+                    board.appendChild(headerRow);
+                }
+
+                if(target) {
+                    guesses.forEach((guess, rowIdx) => {
+                        const row = document.createElement('div');
+                        const isFinal = guess.name === target.name;
+                        // עיכוב קל באנימציה לפי השורה
+                        row.style.animationDelay = `${rowIdx * 0.05}s`;
+                        row.className = `grid grid-cols-5 gap-2 w-full animate-pop mb-1.5 ${isFinal ? 'correct-final p-0.5 rounded-2xl' : ''}`;
+                        
+                        // השוואה נוקשה ומתוקנת (עמודה מול עמודה בלבד)
+                        ['name', 'type', 'location', 'part', 'char'].forEach(col => {
+                            let bgColor = 'bg-wrong'; // ברירת מחדל: אדום/שגוי
+                            
+                            // משיכת הערכים בזהירות כדי למנוע קריסות של ערכים חסרים
+                            const gVal = guess[col] ? String(guess[col]).trim() : '';
+                            const tVal = target[col] ? String(target[col]).trim() : '';
+
+                            if (gVal !== '' && tVal !== '') {
+                                if (gVal === tVal) {
+                                    bgColor = 'bg-correct'; // ירוק: זהה לחלוטין
+                                } else if (tVal.includes(gVal) || gVal.includes(tVal)) {
+                                    bgColor = 'bg-partial'; // כתום: הכלה חלקית (למשל "מכת דם" מול "דם")
+                                }
+                            }
+                            
+                            const displayValue = gVal || '-';
+                            row.innerHTML += `<div class="h-14 sm:h-16 flex items-center justify-center rounded-xl ${bgColor} text-[10px] sm:text-xs font-bold text-center p-1 shadow border border-white/5 transition-colors duration-500">${displayValue}</div>`;
+                        });
+                        board.appendChild(row);
+                    });
+                }
+
+                if (guesses.length > 0) setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
+            
+            } catch(e) {
+                console.error("Render Error: ", e);
+            }
         }
 
         function updateClueUI(clueData, attemptsCount, isWon) {
@@ -418,6 +427,13 @@
         const inputField = document.getElementById('guessInput');
         const autocompleteBox = document.getElementById('autocomplete');
 
+        // מנגנון סגירת התפריט בלחיצה בחוץ
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('inputWrapper').contains(e.target)) {
+                autocompleteBox.classList.add('hidden');
+            }
+        });
+
         inputField.oninput = () => {
             const val = inputField.value.trim();
             if (!val) { 
@@ -432,7 +448,7 @@
             );
             
             autocompleteBox.innerHTML = matches.slice(0, 6).map(m => `
-                <div class="p-4 hover:bg-white/10 cursor-pointer border-b border-gray-800 last:border-0" onclick="makeGuess('${m.name}')">
+                <div class="p-4 hover:bg-white/10 cursor-pointer border-b border-gray-800 last:border-0 transition-colors" onclick="makeGuess('${m.name}')">
                     <span class="font-bold text-white text-lg">${m.name}</span>
                     <span class="text-xs text-gray-500 mr-2 opacity-50">/ ${m.type || ''}</span>
                 </div>
@@ -442,20 +458,24 @@
         };
 
         window.makeGuess = function(name) {
-            const item = state.vocabulary.find(i => i.name === name);
-            if (!item) return;
+            try {
+                const item = state.vocabulary.find(i => i.name === name);
+                if (!item) return;
 
-            state.guesses[state.playType][state.currentMode].push(item);
-            autocompleteBox.classList.add('hidden');
-            inputField.value = '';
-            
-            saveState();
-            renderBoard();
+                state.guesses[state.playType][state.currentMode].push(item);
+                autocompleteBox.classList.add('hidden');
+                inputField.value = '';
+                
+                saveState();
+                renderBoard();
 
-            const target = state.targets[state.playType][state.currentMode];
-            if (target && name === target.name) {
-                createConfetti();
-                setTimeout(showWinModal, 600);
+                const target = state.targets[state.playType][state.currentMode];
+                if (target && name === target.name) {
+                    createConfetti();
+                    setTimeout(showWinModal, 600);
+                }
+            } catch(e) {
+                console.error("Guess Error: ", e);
             }
         };
 
@@ -468,7 +488,7 @@
                 const c = document.createElement('div');
                 c.className = 'confetti';
                 c.style.left = Math.random() * 100 + 'vw';
-                c.style.backgroundColor = ['#538d4e', '#b59f3b', '#38bdf8', '#ffffff', '#ffd700'][Math.floor(Math.random()*5)];
+                c.style.backgroundColor = ['#16a34a', '#f59e0b', '#38bdf8', '#ffffff', '#ffd700'][Math.floor(Math.random()*5)];
                 c.style.animationDuration = (2 + Math.random() * 2) + 's';
                 container.appendChild(c);
                 setTimeout(() => c.remove(), 4000);
@@ -510,7 +530,7 @@
         }
         
         function saveState() { 
-            localStorage.setItem('pesachdle_pro_engine_v3', JSON.stringify({ 
+            localStorage.setItem('pesachdle_pro_engine_v4', JSON.stringify({ 
                 date: new Date().toLocaleDateString('en-CA'), 
                 dailyGuesses: state.guesses.daily,
                 infiniteGuesses: state.guesses.infinite,
