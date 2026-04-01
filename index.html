@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>פסח-דל </title>
+    <title>פסח-דל</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -17,92 +16,69 @@
         }
 
         html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-daily);
-            color: white;
-            font-family: 'Assistant', sans-serif;
-            overflow-x: hidden;
-            transition: background-color 0.6s ease;
-            -webkit-tap-highlight-color: transparent;
+            height: 100%; margin: 0; padding: 0;
+            background-color: var(--bg-daily); color: white;
+            font-family: 'Assistant', sans-serif; overflow-x: hidden;
+            transition: background-color 0.6s ease; -webkit-tap-highlight-color: transparent;
         }
 
         .infinite-bg { background-color: var(--bg-infinite); }
+        .bg-correct { background-color: var(--correct) !important; }
+        .bg-partial { background-color: var(--partial) !important; }
+        .bg-wrong { background-color: var(--wrong) !important; }
 
-        /* Container to handle mobile keyboard better */
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
-        }
+        #app-container { display: flex; flex-direction: column; min-height: 100vh; min-height: -webkit-fill-available; }
         
         .mode-card { 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            border: 2px solid #3a3a3c;
-            background: rgba(255, 255, 255, 0.03);
-            position: relative;
+            border: 2px solid #3a3a3c; background: rgba(255, 255, 255, 0.03); position: relative;
         }
         .mode-card.active { border-color: var(--correct); background-color: #1a1a1b; transform: scale(1.05); z-index: 10; }
         .mode-card.completed::after {
-            content: '✅';
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            font-size: 10px;
-            background: #538d4e;
-            border-radius: 50%;
-            padding: 2px;
+            content: '✅'; position: absolute; top: -6px; right: -6px;
+            font-size: 10px; background: #538d4e; border-radius: 50%; padding: 2px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         
-        @keyframes pop {
-            0% { transform: scale(0.95); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-pop { animation: pop 0.3s ease-out forwards; }
 
-        @keyframes gold-shine {
-            0% { border-color: #b59f3b; box-shadow: 0 0 5px #b59f3b; }
-            50% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
-            100% { border-color: #b59f3b; box-shadow: 0 0 5px #b59f3b; }
-        }
+        @keyframes gold-shine { 0%, 100% { border-color: #b59f3b; box-shadow: 0 0 5px #b59f3b; } 50% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; } }
         .correct-final { animation: gold-shine 1.5s infinite; border-width: 3px !important; }
 
         .zoom-container {
-            width: min(220px, 60vw);
-            height: min(220px, 60vw);
-            overflow: hidden;
-            border-radius: 2rem;
-            margin: 0 auto;
-            border: 4px solid #3a3a3c;
-            background: #1a1a1b;
+            width: min(220px, 60vw); height: min(220px, 60vw);
+            overflow: hidden; border-radius: 2rem; margin: 0 auto;
+            border: 4px solid #3a3a3c; background: #1a1a1b;
         }
         .zoom-image { width: 100%; height: 100%; object-fit: cover; transition: all 0.8s ease; }
 
-        .glass { 
-            background: rgba(18, 18, 19, 0.95); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px); 
-        }
-        
+        .glass { background: rgba(18, 18, 19, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .confetti { position: fixed; top: -20px; width: 8px; height: 8px; z-index: 3000; pointer-events: none; animation: fall linear forwards; }
         @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 
-        /* Lock background scroll */
         .modal-open { overflow: hidden !important; }
+
+        #loading-overlay {
+            position: fixed; inset: 0; background: var(--bg-daily); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease;
+        }
     </style>
 </head>
 <body id="mainBody">
 
+    <div id="loading-overlay">
+        <div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p id="loading-text" class="text-gray-400 animate-pulse font-bold">טוען נתונים מהענן...</p>
+    </div>
+
     <div id="app-container">
         <div id="confetti-container"></div>
 
-        <!-- Header -->
         <header class="w-full max-w-2xl mx-auto flex flex-col items-center border-b border-gray-800 pb-4 mb-4 text-center mt-4 px-4">
             <div class="flex bg-black/40 p-1 rounded-xl mb-6 border border-gray-700 shadow-inner">
                 <button onclick="setPlayType('daily')" id="type-daily" class="px-6 py-2 rounded-lg text-sm font-black transition-all duration-300" style="background: white; color: black;">📅 יומי</button>
@@ -121,18 +97,13 @@
             </nav>
         </header>
 
-        <!-- Clue Area -->
         <div id="clueContainer" class="w-full max-w-md mx-auto bg-[#1a1a1b] p-6 rounded-3xl mb-6 text-center hidden border border-gray-800 shadow-xl mx-4">
             <p id="clueLabel" class="text-gray-500 text-[9px] font-black uppercase tracking-widest mb-2"></p>
             <div id="clueContent" class="text-xl font-bold leading-relaxed flex flex-wrap justify-center items-center min-h-[60px] gap-2"></div>
         </div>
 
-        <!-- Board -->
-        <main id="board" class="w-full max-w-2xl mx-auto flex flex-col gap-2 px-4 pb-40 flex-grow">
-            <!-- Content -->
-        </main>
+        <main id="board" class="w-full max-w-2xl mx-auto flex flex-col gap-2 px-4 pb-40 flex-grow"></main>
 
-        <!-- Controls -->
         <div class="fixed bottom-0 left-0 right-0 glass border-t border-gray-800 flex flex-col items-center z-40 px-4 pb-6 pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
             <div id="completionRibbon" class="hidden w-full max-w-md bg-green-900/40 border border-green-500/30 rounded-xl p-2 mb-3 text-center text-green-400 font-bold text-xs">
                 ✨ ה-<span id="completedModeName"></span> הושלם! (<span id="dailyProgressCount">0</span>/5)
@@ -148,7 +119,6 @@
         </div>
     </div>
 
-    <!-- Modal -->
     <div id="modal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-[1000] p-4 backdrop-blur-md">
         <div class="bg-[#1a1a1b] p-10 rounded-[3rem] max-w-sm w-full text-center border border-gray-800 shadow-2xl animate-pop">
             <div id="modalIcon" class="text-6xl mb-6">🏆</div>
@@ -161,80 +131,129 @@
     </div>
 
     <script>
-        const ITEMS = [
-            { name: "מרור", type: "מאכל", location: "קערה", part: "מרור", char: "מרירות", emoji: "🥬🌿🔥", quote: "עַל שׁוּם מָה? עַל שׁוּם שֶׁמֵּרְרוּ הַמִּצְרִים...", riddle: "אני נראה תמים וירוק, אבל הדמעות יזלגו כשתטעם אותי.", img: "https://images.unsplash.com/photo-1594911773193-4e4b529944a6?w=400" },
-            { name: "פרעה", type: "דמות", location: "מצרים", part: "סיפור", char: "מלך", emoji: "👑🇪🇬🌊", quote: "מִי ה' אֲשֶׁר אֶשְׁמַע בְּקוֹלוֹ?", riddle: "הקשחתי את ליבי שוב ושוב, עד שהמים כיסו את מרכבותיי.", img: "https://images.unsplash.com/photo-1503174971373-b1f69850bded?w=400" },
-            { name: "מצה", type: "מאכל", location: "שולחן", part: "מוציא", char: "יבש", emoji: "🍘⌛🏃", quote: "הָא לַחְמָא עַנְיָא דִּי אֲכָלוּ אַבְהָתָנָא", riddle: "לא הספקתי לתפוח, אז נשארתי שטוח ויבש.", img: "https://images.unsplash.com/photo-1521481180292-628f8695015b?w=400" },
-            { name: "דם", type: "מכה", location: "נילוס", part: "מכות", char: "אדום", emoji: "🩸🌊🐟", quote: "וְהָפְכוּ כָל הַמַּיִם אֲשֶׁר בַּיְאוֹר לְדָם", riddle: "המכה הראשונה שצבעה את הנהר בשינוי צבע מפתיע.", img: "https://images.unsplash.com/photo-1541348263662-e0c8642742e1?w=400" },
-            { name: "אפיקומן", type: "מצה", location: "מסתור", part: "צפון", char: "פרס", emoji: "🧒🔎🫓", quote: "נָהֲגוּ הַתִּינוֹקוֹת לַחְטוֹף...", riddle: "אני החצי שבור שנעלם, ורק הילדים ימצאו אותי.", img: "https://images.unsplash.com/photo-1516641396056-0ce60a85d442?w=400" },
-            { name: "חרוסת", type: "מאכל", location: "קערה", part: "מגיד", char: "טיט", emoji: "🍎🍯🧱", quote: "זֵכֶר לַטִּיט שֶׁעָבְדוּ אֲבוֹתֵינוּ", riddle: "אני מתוקה וסמיכה, מזכירה לכולם עבודה קשה בלבנים.", img: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400" },
-            { name: "משה", type: "דמות", location: "מצרים", part: "סיפור", char: "מנהיג", emoji: "🧔‍♂️🦯🌊", quote: "שַׁלַּח אֶת עַמִּי!", riddle: "הוצאתי אתכם מעבדות, אבל אל הארץ המובטחת רק הבטתי מרחוק.", img: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400" },
-            { name: "קדש", type: "שלב", location: "שולחן", part: "תחילה", char: "יין", emoji: "🍷🙌1️⃣", quote: "הננו מוכנים ומזומנים...", riddle: "השלב הראשון שפותח את הערב בקידוש חגיגי.", img: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400" },
-            { name: "דיינו", type: "שיר", location: "הגדה", part: "מגיד", char: "הודיה", emoji: "🎶🙏📈", quote: "אילו הוציאנו ממצרים...", riddle: "השיר שבו אנחנו מודים על כל חסד בנפרד במילים חוזרות.", img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400" },
-            { name: "זרוע", type: "בשר", location: "קערה", part: "מגיד", char: "זכר", emoji: "🍗🔥🥩", quote: "זכר לקרבן פסח...", riddle: "אני נמצא על הקערה כזכר לקרבן בבית המקדש.", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400" },
-            { name: "ביצה", type: "מאכל", location: "קערה", part: "מגיד", char: "חג", emoji: "🥚🌿🥚", quote: "זכר לקרבן חגיגה...", riddle: "מסמלת את מחזור החיים והאבל על חורבן הבית.", img: "https://images.unsplash.com/photo-1582722872445-44ad5c78a4dd?w=400" },
-            { name: "מה נשתנה", type: "שיר", location: "הגדה", part: "מגיד", char: "שאלה", emoji: "❓👦🕍🍷", quote: "הלילה הזה כולו מצה...", riddle: "הרגע המרגש שבו הילד הקטן שואל ארבע שאלות.", img: "https://images.unsplash.com/photo-1554188248-986adbb73be4?w=400" },
-            { name: "חד גדיא", type: "שיר", location: "הגדה", part: "נרצה", char: "גדי", emoji: "🐐🐈🐕🌊", quote: "דזבין אבא בתרי זוזי...", riddle: "שיר על גדי קטן שנקנה בשני זוזים ושרשרת אירועים.", img: "https://images.unsplash.com/photo-1524024973431-2ad916746881?w=400" },
-            { name: "מים אחרונים", type: "מנהג", location: "שולחן", part: "סוף", char: "נטילה", emoji: "🚿👐🧼", quote: "מים אחרונים חובה...", riddle: "הנטילה שעושים רגע לפני שמברכים ברכת המזון.", img: "https://images.unsplash.com/photo-1547483019-fa931d167eb4?w=400" },
-            { name: "שולחן עורך", type: "שלב", location: "שולחן", part: "אמצע", char: "אוכל", emoji: "🥗🍲🍽️", quote: "יערוך השולחן ככל הצורך...", riddle: "הרגע שכולם מחכים לו - הארוחה החגיגית עצמה.", img: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400" },
-            { name: "כוס אליהו", type: "חפץ", location: "שולחן", part: "הלל", char: "יין", emoji: "🍷🚪🦁", quote: "אליהו הנביא אליהו התשבי...", riddle: "כוס יין חמישית וגדולה שמחכה לאורח המיוחד.", img: "https://images.unsplash.com/photo-1510076857177-7470076d4098?w=400" }
+        // ==========================================
+        // 1. ENGINE CONFIGURATION & STATE
+        // ==========================================
+        const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/main/data/';
+        const VOCAB_URL = GITHUB_BASE + 'vocabulary.json';
+        const PUZZLES_URL = GITHUB_BASE + 'daily_puzzles.json';
+
+        const FALLBACK_VOCAB = [
+            { name: "מרור", type: "מאכל", location: "קערה", part: "מרור", char: "מרירות", emoji: "🥬🌿🔥", quote: "עַל שׁוּם מָה?", riddle: "ירוק ומדמיע.", img: "https://images.unsplash.com/photo-1594911773193-4e4b529944a6?w=400" },
+            { name: "מצה", type: "מאכל", location: "שולחן", part: "מוציא", char: "יבש", emoji: "🍘⌛🏃", quote: "הָא לַחְמָא עַנְיָא", riddle: "לא הספקתי לתפוח.", img: "https://images.unsplash.com/photo-1521481180292-628f8695015b?w=400" },
+            { name: "פרעה", type: "דמות", location: "מצרים", part: "סיפור", char: "מלך", emoji: "👑🇪🇬🌊", quote: "מִי ה' אֲשֶׁר אֶשְׁמַע בְּקוֹלוֹ?", riddle: "הקשחתי את ליבי.", img: "https://images.unsplash.com/photo-1503174971373-b1f69850bded?w=400" }
         ];
 
-        let playType = 'daily';
-        let currentMode = 'classic';
-        let dailyTargets = {};
-        let infiniteTargets = {};
-        let stats = { daily: { classic: [], emoji: [], quote: [], riddle: [], image: [] }, infinite: { classic: [], emoji: [], quote: [], riddle: [], image: [] } };
-
-        function init() {
-            const dateStr = new Date().toDateString();
-            const seed = dateStr.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-            
-            dailyTargets = {
-                classic: ITEMS[seed % ITEMS.length],
-                emoji: ITEMS[(seed + 4) % ITEMS.length],
-                image: ITEMS[(seed + 8) % ITEMS.length],
-                quote: ITEMS[(seed + 12) % ITEMS.length],
-                riddle: ITEMS[(seed + 16) % ITEMS.length]
-            };
-            
-            const saved = localStorage.getItem('pesachdle_stable_v1');
-            if (saved) {
-                const data = JSON.parse(saved);
-                if (data.date === dateStr) stats.daily = data.stats.daily;
-                stats.infinite = data.stats.infinite || stats.infinite;
-                infiniteTargets = data.infiniteTargets || {};
+        let state = {
+            vocabulary: [],
+            puzzles: [],
+            playType: 'daily',
+            currentMode: 'classic',
+            targets: { daily: {}, infinite: {} },
+            guesses: { 
+                daily: { classic: [], emoji: [], image: [], quote: [], riddle: [] }, 
+                infinite: { classic: [], emoji: [], image: [], quote: [], riddle: [] } 
             }
-            if (!infiniteTargets.classic) resetInfiniteTargets();
-            switchMode('classic');
+        };
+
+        const MODES = ['classic', 'emoji', 'image', 'quote', 'riddle'];
+
+        // ==========================================
+        // 2. DATA FETCHING
+        // ==========================================
+        async function loadGameData() {
+            try {
+                const [vocabRes, puzzlesRes] = await Promise.all([
+                    fetch(VOCAB_URL).catch(() => null),
+                    fetch(PUZZLES_URL).catch(() => null)
+                ]);
+
+                if (vocabRes && vocabRes.ok) state.vocabulary = await vocabRes.json();
+                else throw new Error("Vocab fetch failed");
+
+                if (puzzlesRes && puzzlesRes.ok) state.puzzles = await puzzlesRes.json();
+                
+            } catch (error) {
+                console.warn("Using fallback data due to network/repo error:", error);
+                document.getElementById('loading-text').innerText = "טוען נתוני גיבוי...";
+                state.vocabulary = FALLBACK_VOCAB;
+                state.puzzles = [];
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
+                    initGameEngine();
+                }, 800);
+            }
         }
 
-        function resetInfiniteTargets(modeOnly = null) {
-            const getRand = () => ITEMS[Math.floor(Math.random() * ITEMS.length)];
-            if (modeOnly) infiniteTargets[modeOnly] = getRand();
-            else ['classic', 'emoji', 'image', 'quote', 'riddle'].forEach(m => infiniteTargets[m] = getRand());
-            save();
+        // ==========================================
+        // 3. GAME INITIALIZATION
+        // ==========================================
+        function initGameEngine() {
+            const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+            const seed = todayStr.split('-').join('').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+
+            // Set Daily Targets (from daily_puzzles.json OR Seeded Random Fallback)
+            const todayPuzzle = state.puzzles.find(p => p.date === todayStr);
+            
+            MODES.forEach((mode, index) => {
+                let targetName;
+                if (todayPuzzle && todayPuzzle[mode]) {
+                    targetName = todayPuzzle[mode];
+                } else {
+                    targetName = state.vocabulary[(seed + index * 5) % state.vocabulary.length].name;
+                }
+                state.targets.daily[mode] = state.vocabulary.find(v => v.name === targetName) || state.vocabulary[0];
+            });
+
+            // Set Infinite Targets (Random)
+            resetInfiniteTargets();
+
+            // Load Local Storage
+            const saved = localStorage.getItem('pesachdle_engine_v1');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.date === todayStr) state.guesses.daily = parsed.dailyGuesses;
+                    if (parsed.infiniteGuesses) state.guesses.infinite = parsed.infiniteGuesses;
+                    if (parsed.infiniteTargets) state.targets.infinite = parsed.infiniteTargets;
+                } catch(e) { console.error("Corrupted save data."); }
+            }
+
+            setPlayType('daily');
         }
 
+        function resetInfiniteTargets() {
+            MODES.forEach(mode => {
+                if (state.guesses.infinite[mode].length === 0 || state.guesses.infinite[mode].some(g => g.name === state.targets.infinite[mode]?.name)) {
+                    state.targets.infinite[mode] = state.vocabulary[Math.floor(Math.random() * state.vocabulary.length)];
+                    state.guesses.infinite[mode] = [];
+                }
+            });
+            saveState();
+        }
+
+        // ==========================================
+        // 4. CORE ENGINE LOGIC & RENDERING
+        // ==========================================
         function setPlayType(type) {
-            playType = type;
-            const d = document.getElementById('type-daily');
-            const i = document.getElementById('type-infinite');
-            d.style.background = type === 'daily' ? 'white' : 'transparent';
-            d.style.color = type === 'daily' ? 'black' : 'white';
-            i.style.background = type === 'infinite' ? 'white' : 'transparent';
-            i.style.color = type === 'infinite' ? 'black' : 'white';
+            state.playType = type;
+            document.getElementById('type-daily').style.background = type === 'daily' ? 'white' : 'transparent';
+            document.getElementById('type-daily').style.color = type === 'daily' ? 'black' : 'white';
+            document.getElementById('type-infinite').style.background = type === 'infinite' ? 'white' : 'transparent';
+            document.getElementById('type-infinite').style.color = type === 'infinite' ? 'black' : 'white';
             document.getElementById('mainBody').classList.toggle('infinite-bg', type === 'infinite');
-            renderBoard();
+            switchMode(state.currentMode);
         }
 
         function switchMode(mode) {
-            currentMode = mode;
+            state.currentMode = mode;
             document.querySelectorAll('.mode-card').forEach(b => {
                 b.classList.remove('active', 'infinite-mode-card');
                 if (b.id === 'btn-' + mode) {
                     b.classList.add('active');
-                    if (playType === 'infinite') b.classList.add('infinite-mode-card');
+                    if (state.playType === 'infinite') b.classList.add('infinite-mode-card');
                 }
             });
             renderBoard();
@@ -242,48 +261,54 @@
 
         function renderBoard() {
             const board = document.getElementById('board');
-            const clueContainer = document.getElementById('clueContainer'); // הוספנו את זה
-            board.innerHTML = '';
-            const guesses = stats[playType][currentMode];
-            const target = playType === 'daily' ? dailyTargets[currentMode] : infiniteTargets[currentMode];
+            const target = state.targets[state.playType][state.currentMode];
+            const guesses = state.guesses[state.playType][state.currentMode];
             const isWon = guesses.some(g => g.name === target.name);
 
-            // חשיפת אזור הרמזים אם אנחנו לא במוד קלאסי
-            if (currentMode !== 'classic') {
-                clueContainer.classList.remove('hidden');
-            } else {
-                clueContainer.classList.add('hidden');
-            }
-            if (playType === 'daily') {
-                ['classic', 'emoji', 'image', 'quote', 'riddle'].forEach(m => {
-                    const btn = document.getElementById('btn-' + m);
-                    const won = stats.daily[m].some(g => g.name === dailyTargets[m].name);
-                    btn.classList.toggle('completed', won);
+            board.innerHTML = '';
+
+            // Update mode buttons checkmarks (Daily only)
+            if (state.playType === 'daily') {
+                MODES.forEach(m => {
+                    const won = state.guesses.daily[m].some(g => g.name === state.targets.daily[m].name);
+                    document.getElementById('btn-' + m).classList.toggle('completed', won);
                 });
             }
 
+            // Ribbon
             const ribbon = document.getElementById('completionRibbon');
-            if (playType === 'daily' && isWon) {
+            if (state.playType === 'daily' && isWon) {
                 ribbon.classList.remove('hidden');
-                document.getElementById('completedModeName').innerText = getModeName(currentMode);
-                const winCount = Object.keys(stats.daily).filter(k => stats.daily[k].some(g => g.name === dailyTargets[k].name)).length;
+                document.getElementById('completedModeName').innerText = getModeName(state.currentMode);
+                const winCount = MODES.filter(m => state.guesses.daily[m].some(g => g.name === state.targets.daily[m].name)).length;
                 document.getElementById('dailyProgressCount').innerText = winCount;
             } else {
                 ribbon.classList.add('hidden');
             }
 
+            // Input state
             document.getElementById('guessInput').disabled = isWon;
             document.getElementById('inputWrapper').style.opacity = isWon ? '0.4' : '1';
-            if (currentMode !== 'classic') updateClueUI(target, guesses, isWon);
 
-            if (currentMode === 'classic' && guesses.length > 0) {
+            // Clue handling
+            const clueContainer = document.getElementById('clueContainer');
+            if (state.currentMode !== 'classic') {
+                clueContainer.classList.remove('hidden');
+                updateClueUI(target, guesses.length, isWon);
+            } else {
+                clueContainer.classList.add('hidden');
+            }
+
+            // Table headers for classic
+            if (state.currentMode === 'classic' && guesses.length > 0) {
                 const h = document.createElement('div');
                 h.className = 'grid grid-cols-5 gap-2 w-full mb-3 border-b border-gray-800 pb-2 text-[10px] text-gray-600 font-black text-center uppercase';
                 ['מושג', 'סוג', 'מיקום', 'חלק', 'תכונה'].forEach(t => h.innerHTML += `<div>${t}</div>`);
                 board.appendChild(h);
             }
 
-            guesses.forEach((g) => {
+            // Rows
+            guesses.forEach(g => {
                 const row = document.createElement('div');
                 const isFinal = g.name === target.name;
                 row.className = `grid grid-cols-5 gap-2 w-full animate-pop mb-1.5 ${isFinal ? 'correct-final p-0.5 rounded-2xl' : ''}`;
@@ -295,38 +320,42 @@
                 });
                 board.appendChild(row);
             });
-            
-            if (guesses.length > 0) {
-                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
-            }
+
+            if (guesses.length > 0) setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50);
         }
 
-        function updateClueUI(target, guesses, isWon) {
+        function updateClueUI(target, attempts, isWon) {
             const label = document.getElementById('clueLabel');
             const content = document.getElementById('clueContent');
-            if (currentMode === 'emoji') {
+            
+            if (state.currentMode === 'emoji') {
                 label.innerText = 'זהו את המושג:';
-                const arr = Array.from(target.emoji);
-                const revealed = isWon ? arr.length : Math.min(arr.length, guesses.length + 1);
+                const arr = Array.from(target.emoji || "❓");
+                const revealed = isWon ? arr.length : Math.min(arr.length, attempts + 1);
                 content.innerHTML = arr.map((e, i) => `<span class="transition-opacity duration-500 ${i < revealed ? 'opacity-100 scale-110' : 'opacity-10 grayscale'}">${i < revealed ? e : '❓'}</span>`).join('');
-            } else if (currentMode === 'image') {
+            } else if (state.currentMode === 'image') {
                 label.innerText = 'זום-אין (נחשף עם הנסיונות):';
-                const zoom = isWon ? 1 : Math.max(1, 4.0 - (guesses.length * 0.6));
-                const blur = isWon ? 0 : Math.max(0, 15 - (guesses.length * 3.5));
-                content.innerHTML = `<div class="zoom-container"><img src="${target.img}" class="zoom-image" style="transform: scale(${zoom}); filter: blur(${blur}px)"></div>`;
+                const zoom = isWon ? 1 : Math.max(1, 4.0 - (attempts * 0.6));
+                const blur = isWon ? 0 : Math.max(0, 15 - (attempts * 3.5));
+                content.innerHTML = `<div class="zoom-container"><img src="${target.img || ''}" class="zoom-image" style="transform: scale(${zoom}); filter: blur(${blur}px)"></div>`;
             } else {
-                label.innerText = currentMode === 'quote' ? 'השלם את הציטוט:' : 'פתרו את החידה:';
-                content.innerText = target[currentMode];
+                label.innerText = state.currentMode === 'quote' ? 'השלם את הציטוט:' : 'פתרו את החידה:';
+                content.innerText = target[state.currentMode] || "נתונים חסרים";
             }
         }
 
+        // ==========================================
+        // 5. USER INPUT & AUTOCOMPLETE
+        // ==========================================
         const input = document.getElementById('guessInput');
         const auto = document.getElementById('autocomplete');
 
         input.oninput = () => {
             const val = input.value.trim();
             if (!val) { auto.classList.add('hidden'); return; }
-            const matches = ITEMS.filter(i => i.name.includes(val) && !stats[playType][currentMode].some(s => s.name === i.name));
+            const currentGuesses = state.guesses[state.playType][state.currentMode];
+            const matches = state.vocabulary.filter(i => i.name.includes(val) && !currentGuesses.some(s => s.name === i.name));
+            
             auto.innerHTML = matches.slice(0, 6).map(m => `
                 <div class="p-4 hover:bg-white/10 cursor-pointer border-b border-gray-800 last:border-0" onclick="makeGuess('${m.name}')">
                     <span class="font-bold text-white text-lg">${m.name}</span>
@@ -336,20 +365,27 @@
             auto.classList.toggle('hidden', matches.length === 0);
         };
 
-        function makeGuess(name) {
-            const item = ITEMS.find(i => i.name === name);
-            stats[playType][currentMode].push(item);
+        window.makeGuess = function(name) {
+            const item = state.vocabulary.find(i => i.name === name);
+            if (!item) return;
+
+            state.guesses[state.playType][state.currentMode].push(item);
             auto.classList.add('hidden');
             input.value = '';
-            save();
+            
+            saveState();
             renderBoard();
-            const target = playType === 'daily' ? dailyTargets[currentMode] : infiniteTargets[currentMode];
+
+            const target = state.targets[state.playType][state.currentMode];
             if (name === target.name) {
                 createConfetti();
-                setTimeout(showWin, 500);
+                setTimeout(showWinModal, 500);
             }
-        }
+        };
 
+        // ==========================================
+        // 6. EFFECTS & UTILS
+        // ==========================================
         function createConfetti() {
             const container = document.getElementById('confetti-container');
             for (let i = 0; i < 60; i++) {
@@ -363,15 +399,21 @@
             }
         }
 
-        function showWin() {
+        function showWinModal() {
             const modal = document.getElementById('modal');
-            const msg = document.getElementById('modalMsg');
             const btn = document.getElementById('modalActionBtn');
-            msg.innerText = `פיצחת את אתגר ה-${getModeName(currentMode)} ב-${stats[playType][currentMode].length} נסיונות!`;
+            const guessesCount = state.guesses[state.playType][state.currentMode].length;
             
-            if (playType === 'infinite') {
+            document.getElementById('modalMsg').innerText = `פיצחת את אתגר ה-${getModeName(state.currentMode)} ב-${guessesCount} נסיונות!`;
+            
+            if (state.playType === 'infinite') {
                 btn.innerText = "לחידה הבאה";
-                btn.onclick = () => { resetInfiniteTargets(currentMode); stats.infinite[currentMode] = []; save(); closeModal(); renderBoard(); };
+                btn.onclick = () => { 
+                    resetInfiniteTargets(); 
+                    saveState(); 
+                    closeModal(); 
+                    renderBoard(); 
+                };
             } else {
                 btn.innerText = "מעולה, נמשיך?";
                 btn.onclick = closeModal;
@@ -381,14 +423,20 @@
             input.blur();
         }
 
-        function getModeName(m) { return { classic: 'קלאסי', emoji: 'אימוג\'י', image: 'זום-אין', quote: 'ציטוט', riddle: 'חידה' }[m]; }
-        function save() { localStorage.setItem('pesachdle_stable_v1', JSON.stringify({ date: new Date().toDateString(), stats: stats, infiniteTargets: infiniteTargets })); }
-        function closeModal() { 
-            document.getElementById('modal').classList.add('hidden'); 
-            document.body.classList.remove('modal-open');
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); document.body.classList.remove('modal-open'); }
+        function getModeName(m) { return { classic: 'קלאסי', emoji: 'אימוג\'י', image: 'זום-אין', quote: 'ציטוט', riddle: 'חידה' }[m] || m; }
+        
+        function saveState() { 
+            localStorage.setItem('pesachdle_engine_v1', JSON.stringify({ 
+                date: new Date().toLocaleDateString('en-CA'), 
+                dailyGuesses: state.guesses.daily,
+                infiniteGuesses: state.guesses.infinite,
+                infiniteTargets: state.targets.infinite
+            })); 
         }
 
-        window.onload = init;
+        // Start the engine
+        window.onload = loadGameData;
     </script>
 </body>
 </html>
