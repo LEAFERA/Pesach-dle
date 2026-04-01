@@ -119,11 +119,12 @@
 
     <script>
         // ==========================================
-        // 1. הגדרות מנוע ותצורת בסיס
+        // 1. הגדרות מנוע ותצורת בסיס (הנתיב תוקן!)
         // ==========================================
-        const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/main/data/';
+        const GITHUB_BASE = 'https://raw.githubusercontent.com/LEAFERA/Pesach-dle/refs/heads/main/data/';
+        
         const VOCAB_URL = GITHUB_BASE + 'vocabulary.json';
-        const PUZZLES_URL = GITHUB_BASE + 'Puzzles Data.json'; 
+        const PUZZLES_URL = GITHUB_BASE + 'Puzzles%20Data.json'; // הקישור המדויק שנתת
         const DAILY_PUZZLES_URL = GITHUB_BASE + 'daily_puzzles.json'; 
 
         let state = {
@@ -158,6 +159,11 @@
                     fetch(DAILY_PUZZLES_URL).catch(() => null)
                 ]);
 
+                // לוגים לקונסול שיעזרו לנו לוודא שהכל נטען תקין
+                console.log("מילון:", vocabRes && vocabRes.ok ? "✅" : "❌");
+                console.log("חידות:", puzzlesRes && puzzlesRes.ok ? "✅" : "❌");
+                console.log("יומי:", dailyRes && dailyRes.ok ? "✅" : "❌");
+
                 if (vocabRes && vocabRes.ok) state.vocabulary = await vocabRes.json();
                 else state.vocabulary = FALLBACK_VOCAB;
 
@@ -172,6 +178,7 @@
                 }
                 
             } catch (error) {
+                console.error("שגיאה בטעינת נתונים:", error);
                 state.vocabulary = FALLBACK_VOCAB;
                 state.puzzles = {};
                 state.dailyPuzzles = [];
@@ -230,7 +237,8 @@
 
             resetInfiniteTargets();
 
-            const savedData = localStorage.getItem('pesachdle_pro_engine_v5');
+            // v6 - מפתח חדש כדי למחוק שמירות פגומות קודמות שהיו תקועות על מצה ומרור!
+            const savedData = localStorage.getItem('pesachdle_pro_engine_v6');
             if (savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
@@ -508,7 +516,7 @@
         }
         
         function saveState() { 
-            localStorage.setItem('pesachdle_pro_engine_v5', JSON.stringify({ 
+            localStorage.setItem('pesachdle_pro_engine_v6', JSON.stringify({ 
                 date: new Date().toLocaleDateString('en-CA'), 
                 dailyGuesses: state.guesses.daily,
                 infiniteGuesses: state.guesses.infinite,
