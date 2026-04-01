@@ -1,18 +1,22 @@
-[
-  {
-    "date": "2024-04-10",
-    "classic": "מצה",
-    "emoji": "פרעה",
-    "image": "מרור",
-    "quote": "מצה",
-    "riddle": "פרעה"
-  },
-  {
-    "date": "2024-04-11",
-    "classic": "פרעה",
-    "emoji": "מרור",
-    "image": "מצה",
-    "quote": "פרעה",
-    "riddle": "מרור"
-  }
-]
+{
+  "emoji": [
+    { "answer": "מרור", "clue": "🥬🌿🔥" },
+    { "answer": "פרעה", "clue": "👑🇪🇬🌊" },
+    { "answer": "מצה", "clue": "🫓⌛🏃" }
+  ],
+  "image": [
+    { "answer": "דם", "clue": "https://images.unsplash.com/photo-1541348263662-e0c8642742e1?w=400" },
+    { "answer": "מצה", "clue": "https://images.unsplash.com/photo-1521481180292-628f8695015b?w=400" }
+  ],
+  "pic_riddle": [
+    { "answer": "חרוסת", "clue": "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400" }
+  ],
+  "quote": [
+    { "answer": "מצה", "clue": "הָא לַחְמָא עַנְיָא דִּי אֲכָלוּ אַבְהָתָנָא" },
+    { "answer": "פרעה", "clue": "מִי ה' אֲשֶׁר אֶשְׁמַע בְּקוֹלוֹ?" }
+  ],
+  "riddle": [
+    { "answer": "אפיקומן", "clue": "אני החצי שבור שנעלם, ורק הילדים ימצאו אותי." },
+    { "answer": "מרור", "clue": "אני נראה תמים וירוק, אבל הדמעות יזלגו כשתטעם אותי." }
+  ]
+}
